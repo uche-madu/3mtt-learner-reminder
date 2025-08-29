@@ -1,0 +1,48 @@
+name: Weekly Learner Reminder
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"  # Run every Monday at 04:00 UTC
+  workflow_dispatch:    # Allows manual triggering
+
+jobs:
+  run-reminder:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true  # Speeds up repeated runs via caching
+          version: "0.8.14" # Install a specific version of uv.
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Run reminder script
+        env:
+          BUSINESS_ID: ${{ secrets.BUSINESS_ID }}
+          DAREY_USERNAME: ${{ secrets.DAREY_USERNAME }}
+          DAREY_PASSWORD: ${{ secrets.DAREY_PASSWORD }}
+          ORIGIN_EMAIL: ${{ secrets.ORIGIN_EMAIL }}
+          ORIGIN_NAME: ${{ secrets.ORIGIN_NAME }}
+          MAILJET_API_KEY: ${{ secrets.MAILJET_API_KEY }}
+          MAILJET_API_SECRET: ${{ secrets.MAILJET_API_SECRET }}
+          DOWNLOAD_URL: ${{ secrets.DOWNLOAD_URL }}
+          DOWNLOAD_LIMIT: ${{ secrets.DOWNLOAD_LIMIT }}
+          BATCH_SIZE: ${{ secrets.BATCH_SIZE }}
+          INACTIVE_DAYS: ${{ secrets.INACTIVE_DAYS }}
+          LOW_SCORE_THRESHOLD: ${{ secrets.LOW_SCORE_THRESHOLD }}
+          MAX_RETRIES: ${{ secrets.MAX_RETRIES }}
+          RETRY_DELAY: ${{ secrets.RETRY_DELAY }}
+          TEST_MODE: ${{ secrets.TEST_MODE }}
+          TEST_EMAIL_ADDRESS: ${{ secrets.TEST_EMAIL_ADDRESS }}
+        run: uv run main.py

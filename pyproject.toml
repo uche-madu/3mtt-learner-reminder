@@ -1,0 +1,22 @@
+[project]
+name = "3mtt-learner-email-reminder"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.12.15",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "pydantic>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    "pytest>=8.4.1",
+    "pytest-asyncio>=1.1.0",
+    "requests>=2.32.5",
+    "tenacity>=9.1.2",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+]
