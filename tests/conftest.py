@@ -1,5 +1,10 @@
 import pytest
+import pytest_asyncio
+from datetime import datetime, timedelta, timezone
+
 from config import settings as app_settings
+
+now = datetime.now(timezone.utc)
 
 
 @pytest.fixture
@@ -65,3 +70,55 @@ def mock_async_client(monkeypatch):
         lambda *args, **kwargs: MockClient(),
     )
     return MockClient
+
+
+@pytest_asyncio.fixture
+async def learners() -> list[dict]:
+    """
+    Fixture providing learners with varied data for classification tests.
+    Covers inactive, low-score, completed, and invalid cases.
+    """
+    return [
+        # Inactive learner (>40 days)
+        {
+            "_id": "1",
+            "email": "inactive@test.com",
+            "last_loggedin_date": (now - timedelta(days=40)).isoformat(),
+            "program_data": {"progress_status": 80},
+        },
+        # Low-score learner (recent login, low progress)
+        {
+            "_id": "2",
+            "email": "low@test.com",
+            "last_loggedin_date": (now - timedelta(days=1)).isoformat(),
+            "program_data": {"progress_status": 10},
+        },
+        # Completed learner (should be skipped)
+        {
+            "_id": "3",
+            "email": "completed@test.com",
+            "last_loggedin_date": (now - timedelta(days=1)).isoformat(),
+            "program_data": {"progress_status": 100},
+        },
+        # Inactive + low score → should be classified as inactive only
+        {
+            "_id": "4",
+            "email": "conflict@test.com",
+            "last_loggedin_date": (now - timedelta(days=40)).isoformat(),
+            "program_data": {"progress_status": 10},
+        },
+        # Missing email → should be skipped
+        {
+            "_id": "5",
+            "email": None,
+            "last_loggedin_date": (now - timedelta(days=1)).isoformat(),
+            "program_data": {"progress_status": 10},
+        },
+        # Missing _id → should be skipped
+        {
+            "_id": None,
+            "email": "noid@test.com",
+            "last_loggedin_date": (now - timedelta(days=1)).isoformat(),
+            "program_data": {"progress_status": 20},
+        },
+    ]

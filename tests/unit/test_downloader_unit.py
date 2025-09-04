@@ -1,134 +1,171 @@
+# tests/unit/test_downloader_unit.py
 import pytest
-import types
+import httpx
+
 from data_processing import downloader
 
 
 @pytest.mark.asyncio
-async def test_stream_learners_single_page(monkeypatch):
-    """Test stream_learners yields all learners for a single page."""
+async def test_get_bearer_token_success(mocker):
+    """Should return token when Darey API responds successfully."""
+    fake_response = mocker.Mock()
+    fake_response.json.return_value = {"data": {"access_token": "fake-token"}}
+    fake_response.raise_for_status.return_value = None
 
-    learners_data = [{"_id": "1"}, {"_id": "2"}]
-
-    async def mock_get(*args, **kwargs):
-        class MockResp:
-            def raise_for_status(self):
-                return None
-
-            def json(self):
-                return {"data": {"info": learners_data}}
-
-        return MockResp()
-
-    class MockClient:
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, exc_type, exc, tb):
-            return None
-
-        async def get(self, *args, **kwargs):
-            return await mock_get(*args, **kwargs)
-
-    async def mock_get_bearer_token() -> str:
-        return "mock_token"
-
-    # patch both client and bearer_token
-    monkeypatch.setattr(
-        downloader,
-        "httpx",
-        types.SimpleNamespace(AsyncClient=lambda *a, **k: MockClient()),
+    mocker.patch(
+        "httpx.AsyncClient.post",
+        new_callable=mocker.AsyncMock,
+        return_value=fake_response,
     )
-    monkeypatch.setattr(downloader, "get_bearer_token", mock_get_bearer_token)
 
-    results = []
-    async for learner in downloader.stream_learners(page_size=10):
-        results.append(learner)
-
-    assert results == learners_data
+    token = await downloader.get_bearer_token()
+    assert token == "fake-token"
+    fake_response.json.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_stream_learners_empty(monkeypatch):
-    """Test generator stops when no learners are returned."""
+async def test_get_bearer_token_failure(mocker):
+    """Should raise if API request fails."""
+    mock_error_response = mocker.Mock()
+    mock_error_response.status_code = 400
 
-    async def mock_get(*args, **kwargs):
-        class MockResp:
-            def raise_for_status(self):
-                return None
-
-            def json(self):
-                return {"data": {"info": []}}
-
-        return MockResp()
-
-    class MockClient:
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, exc_type, exc, tb):
-            return None
-
-        async def get(self, *args, **kwargs):
-            return await mock_get(*args, **kwargs)
-
-    async def mock_get_bearer_token() -> str:
-        return "mock_token"
-
-    monkeypatch.setattr(
-        downloader,
-        "httpx",
-        types.SimpleNamespace(AsyncClient=lambda *a, **k: MockClient()),
+    fake_response = mocker.Mock()
+    fake_response.raise_for_status.side_effect = httpx.HTTPStatusError(
+        "bad request", request=mocker.Mock(), response=mock_error_response
     )
-    monkeypatch.setattr(downloader, "get_bearer_token", mock_get_bearer_token)
 
-    results = []
-    async for learner in downloader.stream_learners(page_size=10):
-        results.append(learner)
+    mocker.patch(
+        "httpx.AsyncClient.post",
+        new_callable=mocker.AsyncMock,
+        return_value=fake_response,
+    )
 
-    assert results == []
+    with pytest.raises(httpx.HTTPStatusError):
+        await downloader.get_bearer_token()
 
 
 @pytest.mark.asyncio
-async def test_stream_learners_pagination(monkeypatch):
-    """Test multiple pages are yielded correctly."""
+async def test_stream_learners_single_page(mocker):
+    """Should yield learners from a single page and stop."""
+    learners = [{"_id": "1"}, {"_id": "2"}]
 
-    pages = [[{"_id": "1"}, {"_id": "2"}], [{"_id": "3"}], []]
-    call_count = {"count": 0}
+    # Page 1 with learners
+    resp1 = mocker.Mock()
+    resp1.json.return_value = {"data": {"info": learners}}
+    resp1.raise_for_status.return_value = None
 
-    async def mock_get(*args, **kwargs):
-        class MockResp:
-            def raise_for_status(self):
-                return None
+    # Page 2 with no learners → stops loop
+    resp2 = mocker.Mock()
+    resp2.json.return_value = {"data": {"info": []}}
+    resp2.raise_for_status.return_value = None
 
-            def json(self):
-                data = {"data": {"info": pages[call_count["count"]]}}
-                call_count["count"] += 1
-                return data
+    responses = [resp1, resp2]
 
-        return MockResp()
+    async def fake_get(url, headers):
+        return responses.pop(0)
 
-    class MockClient:
-        async def __aenter__(self):
-            return self
-
-        async def __aexit__(self, exc_type, exc, tb):
-            return None
-
-        async def get(self, *args, **kwargs):
-            return await mock_get(*args, **kwargs)
-
-    async def mock_get_bearer_token() -> str:
-        return "mock_token"
-
-    monkeypatch.setattr(
-        downloader,
-        "httpx",
-        types.SimpleNamespace(AsyncClient=lambda *a, **k: MockClient()),
+    mocker.patch(
+        "data_processing.downloader.get_bearer_token", return_value="fake-token"
     )
-    monkeypatch.setattr(downloader, "get_bearer_token", mock_get_bearer_token)
+    mocker.patch(
+        "httpx.AsyncClient.get", new_callable=mocker.AsyncMock, side_effect=fake_get
+    )
 
     results = []
     async for learner in downloader.stream_learners(page_size=2):
-        results.append(learner["_id"])
+        results.append(learner)
 
-    assert results == ["1", "2", "3"]
+    assert results == learners
+
+
+@pytest.mark.asyncio
+async def test_stream_learners_multiple_pages(mocker):
+    """Should iterate across multiple pages until no learners left."""
+    page1 = [{"_id": "1"}]
+    page2 = [{"_id": "2"}]
+
+    resp1 = mocker.Mock()
+    resp1.json.return_value = {"data": {"info": page1}}
+    resp1.raise_for_status.return_value = None
+
+    resp2 = mocker.Mock()
+    resp2.json.return_value = {"data": {"info": page2}}
+    resp2.raise_for_status.return_value = None
+
+    resp3 = mocker.Mock()
+    resp3.json.return_value = {"data": {"info": []}}
+    resp3.raise_for_status.return_value = None
+
+    responses = [resp1, resp2, resp3]
+
+    async def fake_get(url, headers):
+        return responses.pop(0)
+
+    mocker.patch(
+        "data_processing.downloader.get_bearer_token", return_value="fake-token"
+    )
+    mocker.patch(
+        "httpx.AsyncClient.get",
+        new_callable=mocker.AsyncMock,
+        side_effect=fake_get,
+    )
+
+    results = []
+    async for learner in downloader.stream_learners(page_size=1):
+        results.append(learner)
+
+    assert results == [{"_id": "1"}, {"_id": "2"}]
+
+
+@pytest.mark.asyncio
+async def test_stream_learners_transient_error(mocker):
+    """Should raise on transient error so tenacity can retry."""
+    err = httpx.ConnectTimeout("timeout")
+
+    async def fake_get(url, headers):
+        raise err
+
+    mocker.patch(
+        "data_processing.downloader.get_bearer_token", return_value="fake-token"
+    )
+    mocker.patch(
+        "httpx.AsyncClient.get",
+        new_callable=mocker.AsyncMock,
+        side_effect=fake_get,
+    )
+    mocker.patch("data_processing.downloader.is_transient_error", return_value=True)
+
+    with pytest.raises(httpx.ConnectTimeout):
+        results = []
+        async for learner in downloader.stream_learners(page_size=1):
+            results.append(learner)
+
+
+@pytest.mark.asyncio
+async def test_stream_learners_non_transient_error(mocker):
+    """Should log and break on non-transient error without retry."""
+    mock_error_response = mocker.Mock()
+    mock_error_response.status_code = 400
+
+    err = httpx.HTTPStatusError(
+        "bad request", request=mocker.Mock(), response=mock_error_response
+    )
+
+    async def fake_get(url, headers):
+        raise err
+
+    mocker.patch(
+        "data_processing.downloader.get_bearer_token", return_value="fake-token"
+    )
+    mocker.patch(
+        "httpx.AsyncClient.get",
+        new_callable=mocker.AsyncMock,
+        side_effect=fake_get,
+    )
+    mocker.patch("data_processing.downloader.is_transient_error", return_value=False)
+
+    results = []
+    async for learner in downloader.stream_learners(page_size=1):
+        results.append(learner)
+
+    assert results == []
