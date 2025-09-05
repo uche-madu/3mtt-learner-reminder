@@ -1,3 +1,4 @@
+# Pre-commit configuration file
 repos:
   # Sync uv lockfile
   - repo: https://github.com/astral-sh/uv-pre-commit
@@ -19,3 +20,33 @@ repos:
   #   hooks:
   #     - id: mypy
   #       args: ["--ignore-missing-imports"]
+
+  # Lint Markdown syntax and style
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0        # Or the latest valid tag
+    hooks:
+      - id: markdownlint
+        args: ["--disable", "MD013"]  # Disable line-length if needed
+        files: \.md$
+
+
+  # Correct common spelling mistakes
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0 
+    hooks:
+      - id: codespell
+        name: codespell
+        description: Checks for misspellings in text files.
+        args: ["--skip=*.png,*.jpg,*.svg"]
+        entry: codespell
+        language: python
+        types: [text]
+
+
+  # Optional: Validate documentation links and anchors
+  - repo: https://github.com/google/pre-commit-tool-hooks
+    rev: v1.2.5
+    hooks:
+      - id: check-links
+        files: \.md$
+
