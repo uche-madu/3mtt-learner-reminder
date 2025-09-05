@@ -25,7 +25,8 @@ The workflow is designed to run **weekly via GitHub Actions**, ensuring learners
 3mtt-learner-reminder/
 |__ .github
 |   ├── workflows
-|   │   └── scheduler.yml   # 
+|   │   └── scheduler.yml   # Trigger to run the app and send out emails 
+                            # based on the set frequency
 ├── Makefile                # Developer shortcuts
 ├── README.md
 ├── __init__.py
@@ -178,6 +179,8 @@ Set these in **Settings → Secrets and variables → Actions**:
 * `INACTIVE_DAYS`, `LOW_SCORE_THRESHOLD`
 * `MAX_RETRIES`, `RETRY_DELAY`
 * `TEST_MODE`, `TEST_EMAIL_ADDRESS`
+
+> **Note:** Set `TEST_MODE` to `True` in production.
 
 ---
 
