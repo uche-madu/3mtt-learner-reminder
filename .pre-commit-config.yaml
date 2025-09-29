@@ -37,7 +37,7 @@ repos:
       - id: codespell
         name: codespell
         description: Checks for misspellings in text files.
-        args: ["--skip=*.png,*.jpg,*.svg"]
+        args: ["--skip=*.png,*.jpg,*.svg,*.lock,*.json"]
         entry: codespell
         language: python
         types: [text]

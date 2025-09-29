@@ -1,6 +1,6 @@
 # 3MTT Learner Email Reminder
 
-A Python automation package that retrieves learner data from the **Darey API**, filters inactive or low-performing learners, and sends personalized reminder emails using **Mailjet**.
+A Python automation package that retrieves learner data from the **Darey API**, filters inactive or low-performing learners, and sends personalized reminder emails using **AWS SES**.
 
 The workflow is designed to run **weekly via GitHub Actions**, ensuring learners receive timely nudges to keep learning momentum while the process remains **scalable, resilient, and fully automated**.
 
@@ -10,7 +10,7 @@ The workflow is designed to run **weekly via GitHub Actions**, ensuring learners
 
 * **Darey API Downloader** – asynchronously fetches learners in batches with retries.
 * **Learner Filtering** – detects inactive learners and low-performing learners using configurable thresholds.
-* **Email Delivery** – sends reminders via Mailjet with styled HTML templates.
+* **Email Delivery** – sends reminders via AWS SES with styled HTML templates.
 * **Data Analysis** – includes a Jupyter notebook (`analysis.ipynb`) and visualizations (`assets/`) for insights.
 * **Retry & Resilience** – built with `tenacity` to survive transient network/API issues.
 * **Logging** – structured logs stored in `logs/app.log`.
@@ -37,12 +37,14 @@ The workflow is designed to run **weekly via GitHub Actions**, ensuring learners
 │   └── learners_donut.png
 ├── config.py               # Pydantic settings (loads from env vars)
 ├── data/
+|   ├── emails_sent.db      # SQLite database for tracking sent emails
 │   └── learners.json       # .gitignored downloaded learner data for analysis
 ├── data_processing/
 │   ├── downloader.py       # API downloader (async, paginated)
 │   └── filters.py          # Learner filtering logic
 ├── email_sender/
 │   ├── mailjet_client.py   # Mailjet API wrapper
+|   ├── ses_client.py       # AWS SES API wrapper
 │   └── templates.py        # HTML email templates
 ├── log.py                  # Loguru structured logging config
 ├── main.py                 # Orchestration entrypoint
@@ -58,7 +60,7 @@ The workflow is designed to run **weekly via GitHub Actions**, ensuring learners
 │       └── test_mailjet_client.py
 ├── utils/                  # Utilities
 │   ├── batching.py
-│   └── retry.py
+│   └── retry.py            # Tenacity retry decorator
 |── .env                    # Environment variables
 |── .env.example            # Example environment variables
 |── .gitignore              # .gitignored files
@@ -175,12 +177,14 @@ Set these in **Settings → Secrets and variables → Actions**:
 * `DAREY_USERNAME`, `DAREY_PASSWORD`, `BUSINESS_ID`
 * `ORIGIN_EMAIL`, `ORIGIN_NAME`
 * `MAILJET_API_KEY`, `MAILJET_API_SECRET`
+* `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USE_TLS`, `EMAIL_HOST_USER`, `EMAIL_HOST_PASSWORD`
+* `CONCURRENCY`
 * `DOWNLOAD_URL`, `DOWNLOAD_LIMIT`, `BATCH_SIZE`
 * `INACTIVE_DAYS`, `LOW_SCORE_THRESHOLD`
 * `MAX_RETRIES`, `RETRY_DELAY`
-* `TEST_MODE`, `TEST_EMAIL_ADDRESS`
+* `TEST_MODE`, `TEST_EMAIL_ADDRESS`, `DRY_RUN`
 
-> **Note:** Set `TEST_MODE` to `True` in production.
+> **Note:** Set `TEST_MODE` and `DRY_RUN` to `False` in production.
 
 ---
 

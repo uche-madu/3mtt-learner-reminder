@@ -1,4 +1,5 @@
 # data_processing/downloader.py
+from typing import AsyncGenerator
 import httpx
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
 
@@ -16,7 +17,7 @@ from utils.retry import is_transient_error, log_before_retry
 )
 async def get_bearer_token() -> str:
     """Retrieve a Bearer token from Darey API asynchronously, with retries on transient errors."""
-    url = "https://aiservice.academy.darey.io/ai/api/token"
+    url = "https://aiservice.academy.dareyio.com/ai/api/token"
     headers = {
         "x-business-id": settings.business_id.get_secret_value(),
         "Accept": "application/json",
@@ -45,13 +46,12 @@ async def get_bearer_token() -> str:
     before_sleep=log_before_retry,
     reraise=True,
 )
-async def stream_learners(page_size: int | None = None):
+async def stream_learners(batch_size: int = 500) -> AsyncGenerator[dict, None]:
     """
-    Async generator that yields learners from Darey API in pages.
-    Implements retry on transient errors per request.
+    Async generator that yields learners from Darey API in batches.
+    Since the endpoint isn't truly paginated, fetch all at once
+    and yield learners in streaming batches.
     """
-    page = 1
-    limit = page_size or settings.download_limit
     token = await get_bearer_token()
     headers = {
         "Authorization": f"Bearer {token}",
@@ -59,24 +59,27 @@ async def stream_learners(page_size: int | None = None):
         "Accept": "application/json",
     }
 
+    url = f"{settings.download_url}?page=1&limit={settings.download_limit}"
     async with httpx.AsyncClient(timeout=None) as client:
-        while True:
-            url = f"{settings.download_url}?page={page}&limit={limit}"
-            try:
-                response = await client.get(url, headers=headers)
-                response.raise_for_status()
-                data = response.json()
-                learners = data.get("data", {}).get("info", [])
-                if not learners:
-                    logger.info(f"No more learners found on page {page}. Stopping.")
-                    break
-                for learner in learners:
+        try:
+            logger.info(f"Fetching all learners from {url}")
+            response = await client.get(url, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            learners = data.get("data", {}).get("info", [])
+
+            logger.info(f"Retrieved {len(learners)} total learners")
+
+            # Yield in batches instead of one giant list
+            for i in range(0, len(learners), batch_size):
+                batch = learners[i : i + batch_size]
+                logger.info(
+                    f"Yielding batch of {len(batch)} learners ({i + 1}-{i + len(batch)})"
+                )
+                for learner in batch:
                     yield learner
-                logger.info(f"Yielded {len(learners)} learners from page {page}")
-                page += 1
-            except Exception as e:
-                if is_transient_error(e):
-                    # let tenacity handle retry
-                    raise
-                logger.error(f"Failed to fetch learners on page {page}: {e}")
-                break
+        except Exception as e:
+            if is_transient_error(e):
+                # let tenacity handle retry
+                raise
+            logger.error(f"Failed to fetch learners: {e}")

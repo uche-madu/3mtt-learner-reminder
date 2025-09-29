@@ -34,6 +34,12 @@ jobs:
           DAREY_PASSWORD: ${{ secrets.DAREY_PASSWORD }}
           ORIGIN_EMAIL: ${{ secrets.ORIGIN_EMAIL }}
           ORIGIN_NAME: ${{ secrets.ORIGIN_NAME }}
+          EMAIL_HOST: ${{ secrets.EMAIL_HOST }}
+          EMAIL_REGION: ${{ secrets.EMAIL_REGION }}
+          EMAIL_PORT: ${{ secrets.EMAIL_PORT }}
+          EMAIL_USE_TLS: ${{ secrets.EMAIL_USE_TLS }}
+          EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
           MAILJET_API_KEY: ${{ secrets.MAILJET_API_KEY }}
           MAILJET_API_SECRET: ${{ secrets.MAILJET_API_SECRET }}
           DOWNLOAD_URL: ${{ secrets.DOWNLOAD_URL }}
@@ -45,4 +51,6 @@ jobs:
           RETRY_DELAY: ${{ secrets.RETRY_DELAY }}
           TEST_MODE: ${{ secrets.TEST_MODE }}
           TEST_EMAIL_ADDRESS: ${{ secrets.TEST_EMAIL_ADDRESS }}
+          TEST_MODE_COUNT: ${{ secrets.TEST_MODE_COUNT }}
+          CONCURRENCY: ${{ secrets.CONCURRENCY }}
         run: uv run main.py

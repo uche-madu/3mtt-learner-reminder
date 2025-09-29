@@ -8,7 +8,7 @@ Hello {first_name},
 We noticed you haven’t logged into your Darey.io learning dashboard in a while, and we don’t want you to fall behind on your journey. Every module you complete brings you closer to your technical goals and helps you maximise the full value of the programme.
 
 Here are 3 quick steps to get back on track:
-- Log in to your LMS here → https://3mtt.academy.darey.io/
+- Log in to your LMS here → https://3mtt.academy.dareyio.com/
 - Continue from your last completed module
 - Dedicate just 30 minutes today — progress compounds!
 
@@ -28,13 +28,13 @@ The 3MTT Support Team
       <p>We noticed you haven’t logged into your Darey.io learning dashboard in a while, and we don’t want you to fall behind on your journey. Every module you complete brings you closer to your technical goals and helps you maximise the full value of the programme.</p>
       <p><strong>Here are 3 quick steps to get back on track:</strong></p>
       <ul>
-        <li>Log in to your LMS here → <a href="https://3mtt.academy.darey.io/">3MTT Dashboard</a></li>
+        <li>Log in to your LMS here → <a href="https://3mtt.academy.dareyio.com/">3MTT Dashboard</a></li>
         <li>Continue from your last completed module</li>
         <li>Dedicate just 30 minutes today — progress compounds!</li>
       </ul>
       <p>Your consistency matters, and we’re here to support you every step of the way. The 3MTT programme is designed for your success — let’s keep building momentum together.</p>
       <p style="margin: 20px 0;">
-        <a href="https://3mtt.academy.darey.io/" style="background-color: #A8E6A1; color: #000; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Resume Learning Now</a>
+        <a href="https://3mtt.academy.dareyio.com/" style="background-color: #A8E6A1; color: #000; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Resume Learning Now</a>
       </p>
       <p style="margin-top: 20px;">Keep pushing forward,<br><strong>The 3MTT Support Team</strong></p>
     </div>
@@ -78,7 +78,7 @@ The 3MTT Support Team
       </ul>
       <p>Remember, the goal is not just to complete the programme but to master the skills that will open up opportunities for you. You’ve come this far, let’s finish strong!</p>
       <p style="margin: 20px 0;">
-        <a href="https://3mtt.academy.darey.io/" style="background-color: #A8E6A1; color: #000; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Go Back to LMS and Improve Your Score</a>
+        <a href="https://3mtt.academy.dareyio.com/" style="background-color: #A8E6A1; color: #000; padding: 10px 15px; text-decoration: none; border-radius: 5px;">Go Back to LMS and Improve Your Score</a>
       </p>
       <p style="margin-top: 20px;">We believe in you,<br><strong>The 3MTT Support Team</strong></p>
     </div>

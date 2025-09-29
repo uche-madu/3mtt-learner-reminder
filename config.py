@@ -1,4 +1,5 @@
 # config.py
+from pathlib import Path
 from pydantic import AnyHttpUrl, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -17,11 +18,20 @@ class Settings(BaseSettings):
 
     # Origin Email Details
     origin_email: SecretStr
-    origin_name: SecretStr
+    origin_name: str
 
     # Mailjet
     mailjet_api_key: SecretStr
     mailjet_api_secret: SecretStr
+
+    # SMTP / SES Settings
+    email_host: str
+    email_region: str
+    email_port: int
+    email_use_tls: bool
+    email_host_user: SecretStr
+    email_host_password: SecretStr
+    use_smtp: bool = True  # If False, use SES API
 
     # Download options
     download_url: AnyHttpUrl
@@ -37,8 +47,14 @@ class Settings(BaseSettings):
     retry_delay: int = 5  # seconds between retries
 
     # Test mode settings
-    test_mode: bool = False
-    test_email_address: str | None = None
+    test_mode: bool
+    test_email_address: str
+    test_mode_count: int  # Limit learners per template in test mode
+    concurrency: int  # For sending emails
+    dry_run: bool = False  # If True, do not send any emails
+
+    # Data directory
+    data_dir: Path = Path(__file__).resolve().parent / "data"
 
 
 # Global settings instance

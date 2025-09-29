@@ -64,7 +64,7 @@ async def send_batch_emails(
             msg = {
                 "From": {
                     "Email": settings.origin_email.get_secret_value(),
-                    "Name": settings.origin_name.get_secret_value(),
+                    "Name": settings.origin_name,
                 },
                 "To": [{"Email": to_email, "Name": name}],
                 "Subject": template["subject"],
