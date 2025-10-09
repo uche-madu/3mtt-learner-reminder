@@ -11,9 +11,25 @@ TARGET := $(or $(TARGET),local)  # force default to local
 MSG ?=                  # optional message
 
 # --- FastAPI commands ---
-run: ## Start FastAPI dev server with uv
+run-dev: ## Start FastAPI dev server with uv (reload, 1 worker, simple)
 	@echo "Starting FastAPI dev server with uv..."
 	uv run fastapi dev $(APP_MODULE) --host $(HOST) --port $(PORT)
+
+run-dev-gunicorn: ## Start FastAPI dev server with Gunicorn + Uvicorn (1 worker, reload)
+	@echo "Starting FastAPI dev server with Gunicorn (1 worker, reload)..."
+	uv run gunicorn app.main:app \
+		-k uvicorn.workers.UvicornWorker \
+		--reload \
+		-w 1 \
+		--bind $(HOST):$(PORT)
+
+run-prod: ## Start FastAPI in production with Gunicorn + Uvicorn workers (preload, multi-worker)
+	@echo "Starting FastAPI in production with Gunicorn..."
+	uv run gunicorn app.main:app \
+		-k uvicorn.workers.UvicornWorker \
+		--preload \
+		-w 4 \
+		--bind $(HOST):$(PORT)
 
 # --- Docker Compose commands ---
 up: ## Start Docker Compose services

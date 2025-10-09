@@ -1,9 +1,10 @@
 name: Weekly Learner Reminder
 
 on:
-  # schedule:
-  #   - cron: "0 4 * * 1"  # Run every Monday at 04:00 UTC
-  workflow_dispatch:    # Allows manual triggering
+  schedule:
+    - cron: "0 15 * * 5"  # Run every Friday at 4 PM WAT (15:00 UTC)
+  workflow_dispatch:  # Allows manual triggering
+
 
 jobs:
   run-reminder:
