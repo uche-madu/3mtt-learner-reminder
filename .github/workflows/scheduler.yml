@@ -9,6 +9,8 @@ on:
 jobs:
   run-reminder:
     runs-on: ubuntu-latest
+    env:
+      UV_PROJECT_ENVIRONMENT: ".venv" 
 
     steps:
       - name: Checkout repository
@@ -17,13 +19,14 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          enable-cache: true  # Speeds up repeated runs via caching
-          version: "0.8.14" # Install a specific version of uv.
+          enable-cache: false  
+          version: "0.8.14"
 
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
           python-version-file: "pyproject.toml"
+
 
       - name: Install the project
         run: uv sync --locked --all-extras --dev
