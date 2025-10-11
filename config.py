@@ -32,6 +32,11 @@ class Settings(BaseSettings):
     email_host_user: SecretStr
     email_host_password: SecretStr
     use_smtp: bool = True  # If False, use SES API
+    ses_emails_per_second: int
+
+    # Supabase
+    supabase_url: SecretStr
+    supabase_key: SecretStr
 
     # Download options
     download_url: AnyHttpUrl
@@ -47,7 +52,7 @@ class Settings(BaseSettings):
     retry_delay: int = 5  # seconds between retries
 
     # Test mode settings
-    test_mode: bool
+    test_mode: bool = False
     test_email_address: str
     test_mode_count: int  # Limit learners per template in test mode
     concurrency: int  # For sending emails

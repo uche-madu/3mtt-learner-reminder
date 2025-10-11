@@ -2,6 +2,7 @@
 from tenacity import RetryCallState
 from log import logger
 import httpx
+import smtplib
 
 # --- Helper to identify transient exceptions ---
 TRANSIENT_EXCEPTIONS = (
@@ -9,6 +10,12 @@ TRANSIENT_EXCEPTIONS = (
     httpx.ReadTimeout,
     httpx.NetworkError,
     httpx.HTTPStatusError,
+    smtplib.SMTPServerDisconnected,
+    smtplib.SMTPResponseException,
+    smtplib.SMTPConnectError,
+    smtplib.SMTPHeloError,
+    ConnectionResetError,
+    TimeoutError,
 )
 
 
