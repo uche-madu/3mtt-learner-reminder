@@ -2,34 +2,40 @@ name: Weekly Learner Reminder
 
 on:
   schedule:
-    - cron: "0 15 * * 5"  # Run every Friday at 4 PM WAT (15:00 UTC)
-  workflow_dispatch:  # Allows manual triggering
-
+    - cron: "0 15 * * 5"  # Every Friday at 4 PM WAT (15:00 UTC)
+  workflow_dispatch:
 
 jobs:
   run-reminder:
     runs-on: ubuntu-latest
     env:
-      UV_PROJECT_ENVIRONMENT: ".venv" 
+      UV_PROJECT_ENVIRONMENT: ".venv"
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install system build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc python3-dev
+
       - name: Install uv
         uses: astral-sh/setup-uv@v6
         with:
-          enable-cache: false  
+          enable-cache: true
           version: "0.8.14"
 
-      - name: "Set up Python"
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version-file: "pyproject.toml"
 
-
-      - name: Install the project
-        run: uv sync --locked --all-extras --dev
+      - name: Clean and sync dependencies
+        run: |
+          rm -rf .venv
+          uv sync --locked --all-extras --dev --refresh
+          uv pip show psutil || echo "⚠️ psutil not found after sync"
 
       - name: Run reminder script
         env:
