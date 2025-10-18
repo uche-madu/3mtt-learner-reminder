@@ -1,8 +1,8 @@
 name: Weekly Learner Reminder
 
 on:
-  # schedule:
-    # - cron: "0 15 * * 5"  # Every Friday at 4 PM WAT (15:00 UTC)
+  schedule:
+    - cron: "0 15 * * 5"  # Every Friday at 4 PM WAT (15:00 UTC)
   workflow_dispatch:
 
 jobs:
@@ -63,4 +63,7 @@ jobs:
           TEST_EMAIL_ADDRESS: ${{ secrets.TEST_EMAIL_ADDRESS }}
           TEST_MODE_COUNT: ${{ secrets.TEST_MODE_COUNT }}
           CONCURRENCY: ${{ secrets.CONCURRENCY }}
+          SES_EMAILS_PER_SECOND: ${{ secrets.SES_EMAILS_PER_SECOND }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
         run: uv run main.py

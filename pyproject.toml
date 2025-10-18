@@ -8,6 +8,7 @@ dependencies = [
     "aiohttp>=3.12.15",
     "aiolimiter>=1.2.1",
     "boto3>=1.40.40",
+    "git-filter-repo>=2.47.0",
     "httpx>=0.28.1",
     "loguru>=0.7.3",
     "psutil>=7.1.0",
