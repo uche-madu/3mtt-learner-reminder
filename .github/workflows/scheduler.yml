@@ -1,8 +1,8 @@
 name: Weekly Learner Reminder
 
 on:
-  schedule:
-    - cron: "0 15 * * 5"  # Every Friday at 4 PM WAT (15:00 UTC)
+  # schedule:
+    # - cron: "0 15 * * 5"  # Every Friday at 4 PM WAT (15:00 UTC)
   workflow_dispatch:
 
 jobs:
